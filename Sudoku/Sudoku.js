@@ -84,7 +84,7 @@ var Sudoku = (function () {
       //check if there are any other availble solution for the node
       var isExhausted = this.checkForExhaustionOfValues(this.currentNode);
       while (isExhausted) {
-        //reset all its possibile values to available
+        //reset all its guessed values to available
         this.resetGuessedValues(this.currentNode);
         // this.currentNode.values.set(this.currentNode.guessedValue, true);
         var previousNode = this.stack.pop();
@@ -127,12 +127,10 @@ var Sudoku = (function () {
       for (var i = 0; i < rowMissingSolutions.length; i++) {
         tempNode = rowMissingSolutions[i];
         if (!tempNode.isVisited && tempNode != node) {
-          node.allGuessedValues.forEach(function (v) {
-            hasNumber = tempNode.values.has(v);
-            if (hasNumber) {
-              tempNode.values.set(v, true);
-            }
-          }.bind(this));
+          hasNumber = tempNode.values.has(node.guessedValue);
+          if (hasNumber) {
+            tempNode.values.set(node.guessedValue, true);
+          }
         }
       }
     }
@@ -141,12 +139,10 @@ var Sudoku = (function () {
       for (var i = 0; i < columnMissingSolutions.length; i++) {
         tempNode = columnMissingSolutions[i];
         if (!tempNode.isVisited && tempNode != node) {
-          node.allGuessedValues.forEach(function (v) {
-            hasNumber = tempNode.values.has(v);
-            if (hasNumber) {
-              tempNode.values.set(v, true);
-            }
-          }.bind(this));
+          hasNumber = tempNode.values.has(node.guessedValue);
+          if (hasNumber) {
+            tempNode.values.set(node.guessedValue, true);
+          }
         }
       }
     }
@@ -155,12 +151,10 @@ var Sudoku = (function () {
       for (var i = 0; i < squareMissingSolutions.length; i++) {
         tempNode = squareMissingSolutions[i];
         if (!tempNode.isVisited && tempNode != node) {
-          node.allGuessedValues.forEach(function (v) {
-            hasNumber = tempNode.values.has(node.guessedValue);
-            if (hasNumber) {
-              tempNode.values.set(node.guessedValue, true);
-            }
-          }.bind(this));
+          hasNumber = tempNode.values.has(node.guessedValue);
+          if (hasNumber) {
+            tempNode.values.set(node.guessedValue, true);
+          }
         }
       }
     }
@@ -181,6 +175,8 @@ var Sudoku = (function () {
     node.allGuessedValues.forEach(function (v) {
       node.values.set(v, true);
     }.bind(this));
+
+    node.allGuessedValues = [];
   };
 
   Sudoku.prototype.consider = function (node) {
