@@ -56,7 +56,6 @@ var Sudoku = (function () {
     this.findMissingNumbersForColumns();
     this.findMissingNumbersForSquares();
     this.findMissingSolutions();
-    this.solveForSudoku();
   };
 
   Sudoku.prototype.solveForSudoku = function () {
@@ -71,9 +70,7 @@ var Sudoku = (function () {
 
     //pick one of the possible values of the node
     this.currentNode = node;
-    this.currentNode.guessedValue = this.findAvailableValue(this.currentNode);
-    this.currentNode.allGuessedValues.push(this.currentNode.guessedValue);
-    this.currentNode.values.set(this.currentNode.guessedValue, false);
+    this.guess(this.currentNode);
 
     var isTheGuessedNumberProbable = this.regeneratePossibilities(this.currentNode);
     while (!isTheGuessedNumberProbable) {
@@ -81,28 +78,16 @@ var Sudoku = (function () {
       //reset all the nodes whose values have been set to false because of guesses in
       //the currentNode
       this.resetAllNodes(this.currentNode);
-      //check if there are any other availble solution for the node
+      //check if there are any other available solutions for the node
       var isExhausted = this.checkForExhaustionOfValues(this.currentNode);
       while (isExhausted) {
         //reset all its guessed values to available
-        this.resetGuessedValues(this.currentNode);
-        // this.currentNode.values.set(this.currentNode.guessedValue, true);
-        var previousNode = this.stack.pop();
-        previousNode.isVisited = false;
-        this.resetAllNodes(previousNode);
-        this.missingSolutions.push(previousNode);
-        this.guessedSolutions.splice(this.guessedSolutions.indexOf(previousNode), 1);
-        this.currentNode = previousNode;
+        this.backtrack();
         isExhausted = this.checkForExhaustionOfValues(this.currentNode);
       }
 
       //go to the next available solution for the node
-      this.currentNode.guessedValue = this.findAvailableValue(this.currentNode);
-      this.currentNode.values.set(this.currentNode.guessedValue, false);
-      this.currentNode.allGuessedValues.push(this.currentNode.guessedValue);
-      var rowNumber = this.currentNode.position[0];
-      var columnNumber = this.currentNode.position[1];
-      var squareNumber = 3 * Math.floor(rowNumber / 3) + Math.floor(columnNumber / 3);
+      this.guess(this.currentNode);
       isTheGuessedNumberProbable = this.regeneratePossibilities(this.currentNode);
     }
 
@@ -111,6 +96,22 @@ var Sudoku = (function () {
     var nextNode = this.findNextNodeToVisit();
     //restart the process
     this.solve(nextNode);
+  };
+
+  Sudoku.prototype.guess = function (node) {
+    node.guessedValue = this.findAvailableValue(node);
+    node.values.set(node.guessedValue, false);
+    node.allGuessedValues.push(node.guessedValue);
+  };
+
+  Sudoku.prototype.backtrack = function () {
+    this.resetGuessedValues(this.currentNode);
+    var previousNode = this.stack.pop();
+    previousNode.isVisited = false;
+    this.resetAllNodes(previousNode);
+    this.missingSolutions.push(previousNode);
+    this.guessedSolutions.splice(this.guessedSolutions.indexOf(previousNode), 1);
+    this.currentNode = previousNode;
   };
 
   Sudoku.prototype.resetAllNodes = function (node) {
@@ -210,6 +211,7 @@ var Sudoku = (function () {
     var rowIndexOfNode = row.indexOf(node);
     var columnIndexOfNode = column.indexOf(node);
     var neighboringNode;
+
     //if the node is not the last node of the row
     if (rowIndexOfNode < (row.length - 1)) {
       neighboringNode = row[rowIndexOfNode + 1];
@@ -398,7 +400,6 @@ var Sudoku = (function () {
                    values: possibilities,
                    isVisited: false };
           this.missingSolutions.push(node);
-          // this.missingSolutions.set([rowNumber, columnNumber], possibilities);
 
           if (!this.missingSolutionsForRows[rowNumber]) {
             this.missingSolutionsForRows[rowNumber] = [node];
@@ -436,5 +437,6 @@ var puzzleFile = [['5', '3', '_', '_', '7', '_', '_', '_', '_'],
                   ['_', '_', '_', '_', '8', '_', '_', '7', '9']];
 
 var sudoku = new Sudoku(puzzleFile);
+sudoku.solveForSudoku();
 
 console.log(sudoku)
